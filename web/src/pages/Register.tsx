@@ -10,7 +10,16 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { FirebaseError } from 'firebase/app';
 import { register } from '../services/auth';
+
+const ERROR_MESSAGES: Record<string, string> = {
+  'auth/email-already-in-use': 'Este e-mail já está cadastrado. Tente fazer login.',
+  'auth/invalid-email': 'E-mail inválido.',
+  'auth/weak-password': 'Senha muito fraca. Use no mínimo 8 caracteres.',
+  'auth/operation-not-allowed': 'Cadastro por e-mail/senha não está habilitado.',
+  'auth/network-request-failed': 'Erro de rede. Verifique sua conexão.',
+};
 
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,}$/;
 
@@ -39,8 +48,12 @@ const Register = () => {
     try {
       await register(email, password);
       navigate('/connections', { replace: true });
-    } catch {
-      setError('Não foi possível criar a conta. Verifique o e-mail informado.');
+    } catch (err) {
+      if (err instanceof FirebaseError && ERROR_MESSAGES[err.code]) {
+        setError(ERROR_MESSAGES[err.code]);
+      } else {
+        setError('Não foi possível criar a conta. Tente novamente.');
+      }
     } finally {
       setLoading(false);
     }

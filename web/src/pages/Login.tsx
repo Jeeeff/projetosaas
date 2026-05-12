@@ -10,7 +10,17 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { FirebaseError } from 'firebase/app';
 import { login } from '../services/auth';
+
+const ERROR_MESSAGES: Record<string, string> = {
+  'auth/invalid-credential': 'E-mail ou senha inválidos.',
+  'auth/invalid-email': 'E-mail inválido.',
+  'auth/user-not-found': 'Conta não encontrada.',
+  'auth/wrong-password': 'E-mail ou senha inválidos.',
+  'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde.',
+  'auth/network-request-failed': 'Erro de rede. Verifique sua conexão.',
+};
 
 const Login = () => {
   const navigate = useNavigate();
@@ -26,8 +36,12 @@ const Login = () => {
     try {
       await login(email, password);
       navigate('/connections', { replace: true });
-    } catch {
-      setError('E-mail ou senha inválidos.');
+    } catch (err) {
+      if (err instanceof FirebaseError && ERROR_MESSAGES[err.code]) {
+        setError(ERROR_MESSAGES[err.code]);
+      } else {
+        setError('E-mail ou senha inválidos.');
+      }
     } finally {
       setLoading(false);
     }
