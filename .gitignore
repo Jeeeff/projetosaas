@@ -1,0 +1,46 @@
+# Variáveis de ambiente — NUNCA commitar
+web/.env
+web/.env.local
+web/.env.production.local
+web/.env.development.local
+
+# Dependências
+node_modules/
+web/node_modules/
+functions/node_modules/
+
+# Build outputs
+web/dist/
+web/dist-ssr/
+functions/lib/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+ui-debug.log
+database-debug.log
+pubsub-debug.log
+firestore-debug.log
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/

@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function unchanged(field) {
+      return request.resource.data[field] == resource.data[field];
+    }
+
+    match /connections/{docId} {
+      allow read, delete: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100;
+      allow update: if isOwner(resource.data.userId)
+        && unchanged('userId')
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100;
+    }
+
+    match /contacts/{docId} {
+      allow read, delete: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId)
+        && request.resource.data.connectionId is string
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() > 0
+        && request.resource.data.phone.size() <= 20;
+      allow update: if isOwner(resource.data.userId)
+        && unchanged('userId')
+        && unchanged('connectionId')
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.phone.size() > 0
+        && request.resource.data.phone.size() <= 20;
+    }
+
+    match /messages/{docId} {
+      allow read, delete: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId)
+        && request.resource.data.connectionId is string
+        && request.resource.data.content is string
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 2000
+        && request.resource.data.status in ['sent', 'scheduled']
+        && request.resource.data.contactIds is list
+        && request.resource.data.contactIds.size() > 0
+        && request.resource.data.contactIds.size() <= 500;
+      allow update: if isOwner(resource.data.userId)
+        && unchanged('userId')
+        && unchanged('connectionId')
+        && request.resource.data.status in ['sent', 'scheduled']
+        && request.resource.data.contactIds is list
+        && request.resource.data.contactIds.size() > 0
+        && request.resource.data.contactIds.size() <= 500
+        && request.resource.data.content is string
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 2000;
+    }
+
+    // Defense-in-depth: nega tudo que não foi explicitamente permitido acima
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
